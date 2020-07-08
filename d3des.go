@@ -101,27 +101,27 @@ func desfunc(block []byte, keys [32]uint32) []byte {
 	for i := 0; i < 32; i += 4 {
 		work = (right << 28) | (right >> 4)
 		work ^= keys[i]
-		fval := SP7[work&0x3f]
-		fval |= SP5[(work>>8)&0x3f]
-		fval |= SP3[(work>>16)&0x3f]
-		fval |= SP1[(work>>24)&0x3f]
+		fval := sp7[work&0x3f]
+		fval |= sp5[(work>>8)&0x3f]
+		fval |= sp3[(work>>16)&0x3f]
+		fval |= sp1[(work>>24)&0x3f]
 		work = right ^ keys[i+1]
-		fval |= SP8[work&0x3f]
-		fval |= SP6[(work>>8)&0x3f]
-		fval |= SP4[(work>>16)&0x3f]
-		fval |= SP2[(work>>24)&0x3f]
+		fval |= sp8[work&0x3f]
+		fval |= sp6[(work>>8)&0x3f]
+		fval |= sp4[(work>>16)&0x3f]
+		fval |= sp2[(work>>24)&0x3f]
 		leftt ^= fval
 		work = (leftt << 28) | (leftt >> 4)
 		work ^= keys[i+2]
-		fval = SP7[work&0x3f]
-		fval |= SP5[(work>>8)&0x3f]
-		fval |= SP3[(work>>16)&0x3f]
-		fval |= SP1[(work>>24)&0x3f]
+		fval = sp7[work&0x3f]
+		fval |= sp5[(work>>8)&0x3f]
+		fval |= sp3[(work>>16)&0x3f]
+		fval |= sp1[(work>>24)&0x3f]
 		work = leftt ^ keys[i+3]
-		fval |= SP8[work&0x3f]
-		fval |= SP6[(work>>8)&0x3f]
-		fval |= SP4[(work>>16)&0x3f]
-		fval |= SP2[(work>>24)&0x3f]
+		fval |= sp8[work&0x3f]
+		fval |= sp6[(work>>8)&0x3f]
+		fval |= sp4[(work>>16)&0x3f]
+		fval |= sp2[(work>>24)&0x3f]
 		right ^= fval
 
 	}
