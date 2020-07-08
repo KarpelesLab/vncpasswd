@@ -13,10 +13,15 @@ func GenerateResponse(passwd, challenge []byte) []byte {
 	return append(desfunc(challenge[:8], ek), desfunc(challenge[8:], ek)...)
 }
 
-func Crypt(password string, decrypt bool) []byte {
+func Crypt(password string) []byte {
 	pwd := make([]byte, 8)
 	copy(pwd, password)
 
-	key := deskey(vnckey, decrypt)
+	key := deskey(vnckey, false)
 	return desfunc(pwd, key)
+}
+
+func Decrypt(value []byte) string {
+	key := deskey(vnckey, true)
+	return string(desfunc(value, key))
 }
