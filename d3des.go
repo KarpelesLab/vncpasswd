@@ -4,8 +4,18 @@ import (
 	"encoding/binary"
 )
 
+// deskey generates a DES key schedule from an 8-byte key.
+//
+// This function implements the DES key schedule algorithm as specified in
+// ANSI X3.92-1981. It takes an 8-byte key and produces 32 subkeys (16 rounds
+// with 2 subkeys per round) used in the DES encryption/decryption process.
+//
+// The decrypt parameter controls the order of the subkeys:
+//   - false: subkeys are ordered for encryption
+//   - true: subkeys are reversed for decryption
+//
+// Thanks to James Gillogly & Phil Karn for the original implementation.
 func deskey(key [8]byte, decrypt bool) [32]uint32 {
-	// Thanks to James Gillogly & Phil Karn!
 	var pc1m, pcr [56]bool
 	var kn [32]uint32
 
@@ -57,6 +67,11 @@ func deskey(key [8]byte, decrypt bool) [32]uint32 {
 	return cookey(kn)
 }
 
+// cookey transforms the raw key schedule into an optimized format.
+//
+// This function post-processes the key schedule produced by deskey,
+// rearranging the bits for more efficient S-box lookups during the
+// DES encryption/decryption rounds.
 func cookey(raw [32]uint32) [32]uint32 {
 	for i := byte(0); i < 32; i += 2 {
 		raw0, raw1 := raw[i], raw[i+1]
@@ -75,6 +90,19 @@ func cookey(raw [32]uint32) [32]uint32 {
 	return raw
 }
 
+// desfunc performs DES encryption or decryption on an 8-byte block.
+//
+// This function implements the core DES Feistel cipher. It takes an 8-byte
+// input block and a key schedule (from deskey), and returns the encrypted
+// or decrypted 8-byte result.
+//
+// The function performs:
+//   - Initial permutation (IP)
+//   - 16 rounds of the Feistel function using S-boxes (sp1-sp8)
+//   - Final permutation (IP^-1)
+//
+// Whether encryption or decryption is performed depends on the key schedule
+// ordering (set by the decrypt parameter in deskey).
 func desfunc(block []byte, keys [32]uint32) []byte {
 	var leftt, right uint32
 	leftt = binary.BigEndian.Uint32(block[:4])

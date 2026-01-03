@@ -1,8 +1,16 @@
 package vncpasswd
 
+// vnckey is the fixed 8-byte key used by VNC for password encryption.
+// This key is the same across all VNC implementations and is publicly known.
+// The use of a fixed key is what makes VNC password encryption inherently insecure.
 var vnckey = [...]byte{23, 82, 107, 6, 35, 78, 88, 7}
-var bytebit = []byte{01, 02, 04, 010, 020, 040, 0100, 0200} // VNC version
 
+// bytebit contains bit masks for extracting individual bits from a byte.
+// VNC uses a different bit ordering than standard DES implementations.
+var bytebit = []byte{01, 02, 04, 010, 020, 040, 0100, 0200}
+
+// bigbyte contains 24 pre-computed bit position values used during
+// key schedule generation, from 0x800000 down to 0x1.
 var bigbyte = []uint32{
 	0x800000, 0x400000, 0x200000, 0x100000,
 	0x80000, 0x40000, 0x20000, 0x10000,
@@ -12,8 +20,13 @@ var bigbyte = []uint32{
 	0x8, 0x4, 0x2, 0x1,
 }
 
-// Use the key schedule specified in the Standard (ANSI X3.92-1981).
+// DES Key Schedule Constants as specified in ANSI X3.92-1981.
+//
+// These tables define the permutations and rotations used to derive
+// the 16 round subkeys from the original 64-bit (56 effective bits) key.
 
+// pc1 is the first permutation choice table (PC-1).
+// It selects and permutes 56 bits from the 64-bit input key.
 var pc1 = [...]byte{
 	56, 48, 40, 32, 24, 16, 8, 0, 57, 49, 41, 33, 25, 17,
 	9, 1, 58, 50, 42, 34, 26, 18, 10, 2, 59, 51, 43, 35,
@@ -21,8 +34,12 @@ var pc1 = [...]byte{
 	13, 5, 60, 52, 44, 36, 28, 20, 12, 4, 27, 19, 11, 3,
 }
 
+// totrot contains the cumulative rotation amounts for each of the 16 rounds.
+// The key halves (C and D) are rotated by these amounts during key schedule generation.
 var totrot = [...]byte{1, 2, 4, 6, 8, 10, 12, 14, 15, 17, 19, 21, 23, 25, 27, 28}
 
+// pc2 is the second permutation choice table (PC-2).
+// It selects 48 bits from the rotated 56-bit key to form each round subkey.
 var pc2 = []byte{
 	13, 16, 10, 23, 0, 4, 2, 27, 14, 5, 20, 9,
 	22, 18, 11, 3, 25, 7, 15, 6, 26, 19, 12, 1,
@@ -30,6 +47,12 @@ var pc2 = []byte{
 	43, 48, 38, 55, 33, 52, 45, 41, 49, 35, 28, 31,
 }
 
+// DES S-box lookup tables (sp1 through sp8).
+//
+// These are pre-computed combined S-box and P-box tables used in the DES
+// Feistel function. Each table contains 64 entries representing the output
+// of one S-box combined with the subsequent permutation, stored as 32-bit
+// values for efficient lookup during encryption/decryption rounds.
 var (
 	sp1 = []uint32{
 		0x01010400, 0x00000000, 0x00010000, 0x01010404,
